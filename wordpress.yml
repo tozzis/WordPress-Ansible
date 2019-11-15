@@ -1,0 +1,53 @@
+---
+- name: install wordpress in serverx
+  hosts: serverx
+
+  tasks:
+    - name: install package
+      yum: 
+        name:
+          - httpd
+          - mariadb
+          - mariadb-server
+          - php
+          - php-common
+          - php-mysql
+          - php-gd
+          - php-xml
+          - php-mbstring
+          - php-mcrypt
+          - php-xmlrpc
+          - unzip
+          - wget
+    - name: service httpd
+      service:
+        name: httpd
+        state: started
+        enabled: yes
+    - name: service mariadb
+      service:
+        name: mariadb
+        state: started
+        enabled: yes
+    - name: firewall http
+      firewalld:
+        service: http
+        permanent: yes
+        state: enabled
+        immediate: yes
+    - name: check if root password is set
+      shell: mysqladmin -u root status
+      changed_when: false
+      failed_when: false
+      register: root_pwd_check
+      tags: mariadb
+    - name: set mysqladmin password "abc"
+      shell: mysqladmin password "abc"
+      tags: mariadb
+      when: root_pwd_check.rc == 0
+    - name: copy script to serverx
+      copy:
+        src: database.sql
+        dest: /tmp/database.sql
+    - name: run script sql
+      shell: mysql -uroot -p"abc" > /tmp/database.sql

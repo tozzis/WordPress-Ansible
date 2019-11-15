@@ -1,0 +1,5 @@
+[labx]
+labx.example.com ansible_user=root
+
+[serverx]
+serverx.example.com ansible_user=root
